@@ -34,6 +34,7 @@ app.get('/api/menuler', async (req, res) => {
         console.error('Veritabaný hatasý:', error);
         if (yedekdata) {
             res.json(yedekdata);
+            console.log ("yedekler")
         }
        
     }
