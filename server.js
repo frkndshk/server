@@ -25,17 +25,16 @@ connection.connect(function (err) {
     console.log('Connected to MySQL');
 });
 
-app.get('/api/menuler', (req, res) => {
-    connection.query('SELECT * FROM menuler', (error, results, fields) => {
-        if (error) {
-            console.error('Error querying the database:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
-            return;
-        }
-
-        res.json(results);
-    });
+app.get('/api/menuler', async (req, res) => {
+    try {
+        const results = await connection.promise().query('SELECT * FROM menuler');
+        res.json(results[0]);
+    } catch (error) {
+        console.error('Veritabaný hatasý:', error);
+        res.status(500).json({ error: 'Internal Server Error', message: 'Veritabaný sorgusu sýrasýnda bir hata oluþtu' });
+    }
 });
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
