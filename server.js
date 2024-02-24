@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3002;
-
+const yedekdata = {};
 const connection = mysql.createConnection({
     host: process.env.DB_HOST || 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
     user: process.env.DB_USER || 'uqcw9bdlanbwc4sn',
@@ -28,10 +28,11 @@ connection.connect(function (err) {
 app.get('/api/menuler', async (req, res) => {
     try {
         const results = await connection.promise().query('SELECT * FROM menuler');
+        yedekdata = results[0];
         res.json(results[0]);
     } catch (error) {
         console.error('Veritabaný hatasý:', error);
-        res.status(500).json({ error: 'Internal Server Error', message: 'Veritabaný sorgusu sýrasýnda bir hata oluþtu' });
+        res.json(yedekdata);
     }
 });
 
