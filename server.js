@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3002;
-const yedekdata = {};
+const yedekdata = null;
 const connection = mysql.createConnection({
     host: process.env.DB_HOST || 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
     user: process.env.DB_USER || 'uqcw9bdlanbwc4sn',
