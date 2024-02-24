@@ -28,11 +28,14 @@ connection.connect(function (err) {
 app.get('/api/menuler', async (req, res) => {
     try {
         const results = await connection.promise().query('SELECT * FROM menuler');
-        yedekdata = results[0];
+        yedekdata = await results[0];
         res.json(results[0]);
     } catch (error) {
         console.error('Veritabaný hatasý:', error);
-        res.json(yedekdata);
+        if (yedekdata) {
+            res.json(yedekdata);
+        }
+       
     }
 });
 
