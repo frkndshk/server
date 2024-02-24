@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3002;
-const yedekdata = {} ;
+
 const connection = mysql.createConnection({
     host: process.env.DB_HOST || 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
     user: process.env.DB_USER || 'uqcw9bdlanbwc4sn',
@@ -25,21 +25,17 @@ connection.connect(function (err) {
     console.log('Connected to MySQL');
 });
 
-app.get('/api/menuler', async (req, res) => {
-    try {
-        const results = await connection.promise().query('SELECT * FROM menuler');
-      
-        res.json(results[0]);
-    } catch (error) {
-        console.error('Veritabaný hatasý:', error);
-        if (yedekdata) {
-            res.json(yedekdata);
-            console.log ("yedekler")
+app.get('/api/menuler', (req, res) => {
+    connection.query('SELECT * FROM menuler', (error, results, fields) => {
+        if (error) {
+            console.error('Error querying the database:', error);
+            res.status(500).json({ });
+            return;
         }
-       
-    }
-});
 
+        res.json(results);
+    });
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
