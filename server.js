@@ -1,61 +1,55 @@
 const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
-
+const mysql = require('mysql');
 const app = express();
-const port = process.env.PORT || 3002;
-var yedekler = null;
+const port = 3000;
 
+// MySQL veritabanı bağlantısı oluşturma
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST || 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
-    user: process.env.DB_USER || 'uqcw9bdlanbwc4sn',
-    password: process.env.DB_PASSWORD || 'CP8ER0OfZj4xD01po2xJ',
-    database: process.env.DB_DATABASE || 'brflrxzq5tg82kflfbmv'
+    host: 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
+    user: 'uqcw9bdlanbwc4sn',
+    password: 'CP8ER0OfZj4xD01po2xJ',
+    database: 'brflrxzq5tg82kflfbmv'
 });
 
-// CORS middleware
-app.use(cors());
-
-// Middleware to parse JSON bodies
-app.use(express.json());
-
-// Veritabanı bağlantı olaylarını izleme
-connection.connect(function (err) {
+// Veritabanına bağlanma
+connection.connect((err) => {
     if (err) {
-        console.error('Error connecting to MySQL:', err);
+        console.error('Veritabanına bağlanırken hata oluştu:', err);
         return;
     }
-    console.log('Connected to MySQL');
+    console.log('Veritabanına başarıyla bağlanıldı!');
 });
 
-// Verileri al
-app.get('/api/menuler', (req, res) => {
-    connection.query('SELECT * FROM beo_menu', (error, results, fields) => {
-        if (error) {
-            console.error('Error querying the database:', error);
-            if (yedekler) {
-                res.json(yedekler);
-            }
+// Root endpoint
+app.get('/', (req, res) => {
+    res.send('Merhaba Dünya!');
+});
+
+// Veritabanından veri çekme endpointi
+app.get('/veri', (req, res) => {
+    const sql = 'SELECT * FROM boe_menu';
+    connection.query(sql, (err, results) => {
+        if (err) {
+            res.status(500).send('Veri çekerken hata oluştu: ?');
+            console.log(err)
             return;
         }
         res.json(results);
-        yedekler = results;
     });
 });
-
-// Verileri kaydet
-app.post('/api/menuler', (req, res) => {
-    const jsonData = JSON.stringify(req.body);
-
-    connection.query('INSERT INTO boe_menu (json_data) VALUES (?)', [jsonData], (error, results) => {
-        if (error) {
-            console.error('Error inserting into the database:', error);
-            return res.status(500).send('Error inserting data');
+app.post('/menu', (req, res) => {
+    const veri = req.body.menu_json;
+    const id = req.body.menu_id;
+    const sql = 'INSERT INTO beo_menu (json, id) VALUES(?,?);';
+    connection.query(sql, [veri,id], (err, results) => {
+        if (err) {
+            res.status(500).send('Veri eklerken hata oluştu');
+            return;
         }
-        res.status(200).send(`JSON kaydedildi! ID: ${results.insertId}`);
+        res.status(201).send('Veri başarıyla eklendi');
     });
 });
-
+// Sunucuyu başlatma
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Sunucu http://localhost:${port} adresinde çalışıyor`);
 });
