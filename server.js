@@ -1,55 +1,45 @@
 const express = require('express');
-const mysql = require('mysql');
-const app = express();
-const port = 3000;
+const mysql = require('mysql2');
+const cors = require('cors');
 
-// MySQL veritabanı bağlantısı oluşturma
+const app = express();
+const port = process.env.PORT || 3002;
+var yedekler = null;
 const connection = mysql.createConnection({
-    host: 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
-    user: 'uqcw9bdlanbwc4sn',
-    password: 'CP8ER0OfZj4xD01po2xJ',
-    database: 'brflrxzq5tg82kflfbmv'
+    host: process.env.DB_HOST || 'brflrxzq5tg82kflfbmv-mysql.services.clever-cloud.com',
+    user: process.env.DB_USER || 'uqcw9bdlanbwc4sn',
+    password: process.env.DB_PASSWORD || 'CP8ER0OfZj4xD01po2xJ',
+    database: process.env.DB_DATABASE || 'brflrxzq5tg82kflfbmv'
 });
 
-// Veritabanına bağlanma
-connection.connect((err) => {
+// CORS middleware
+app.use(cors());
+
+// Veritaban� ba�lant� olaylar�n� izleme
+connection.connect(function (err) {
     if (err) {
-        console.error('Veritabanına bağlanırken hata oluştu:', err);
+        console.error('Error connecting to MySQL:', err);
         return;
     }
-    console.log('Veritabanına başarıyla bağlanıldı!');
+
+    console.log('Connected to MySQL');
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-    res.send('Merhaba Dünya!');
-});
-
-// Veritabanından veri çekme endpointi
-app.get('/veri', (req, res) => {
-    const sql = 'SELECT * FROM boe_menu';
-    connection.query(sql, (err, results) => {
-        if (err) {
-            res.status(500).send('Veri çekerken hata oluştu: ?');
-            console.log(err)
+app.get('/api/menuler', (req, res) => {
+    connection.query('SELECT * FROM menuler', (error, results, fields) => {
+        if (error) {
+            console.error('Error querying the database:', error);
+            if (yedekler) {
+                res.json(yedekler)
+            }
             return;
         }
+
         res.json(results);
+        yedekler = results;
     });
 });
-app.post('/menu', (req, res) => {
-    const veri = req.body.menu_json;
-    const id = req.body.menu_id;
-    const sql = 'INSERT INTO beo_menu (json, id) VALUES(?,?);';
-    connection.query(sql, [veri,id], (err, results) => {
-        if (err) {
-            res.status(500).send('Veri eklerken hata oluştu');
-            return;
-        }
-        res.status(201).send('Veri başarıyla eklendi');
-    });
-});
-// Sunucuyu başlatma
+
 app.listen(port, () => {
-    console.log(`Sunucu http://localhost:${port} adresinde çalışıyor`);
+    console.log(`Server is running on port ${port}`);
 });
